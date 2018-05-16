@@ -1,0 +1,50 @@
+func :int->string
+	dup
+	push 15
+	mod
+	jnz fizzcheck
+		push "FizzBuzz"
+		ret
+
+	.fizzcheck
+	dup
+	push 3
+	mod
+	jnz buzzcheck
+		push "Fizz"
+		ret
+
+	.buzzcheck
+	dup
+	push 5
+	mod
+	jnz else
+		push "Buzz"
+		ret
+
+	.else
+		dup
+		get @ToString:int->string
+		call
+		ret
+end func
+set @fizzbuzz:int->string
+
+func :
+	push 1
+	.loop
+	dup
+	push 100
+	lt
+	jf loopend
+		dup
+		get @fizzbuzz:int->string
+		call
+		get @Println:string
+		call
+
+		inc
+	j loop
+	.loopend
+end func
+set @Main
