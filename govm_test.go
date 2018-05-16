@@ -26,9 +26,9 @@ func TestGovm(t *testing.T) {
 	code = append(code,
 		byte(opcode.Call),
 		byte(opcode.Set),
-		0x00, 0x00, 0x00, 0x04, // 4 bytes
+		0x00, 0x00, 0x00, 0x05, // 5 bytes
 	)
-	code = append(code, []byte("Main")...)
+	code = append(code, []byte("Main:")...)
 
 	v := NewVM()
 	v.Load(code)
@@ -40,6 +40,6 @@ func TestGovm(t *testing.T) {
 	})
 	v.Set(types.Symbol("Println:string"))
 
-	v.Get(types.Symbol("Main"))
+	v.Get(types.Symbol("Main:"))
 	v.Call()
 }

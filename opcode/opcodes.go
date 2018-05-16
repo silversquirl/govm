@@ -44,6 +44,7 @@ const (
 	Sub byte = 0x23
 	Mul byte = 0x24
 	Div byte = 0x25
+	Mod byte = 0x26
 
 	EQ byte = 0x30
 	NE byte = 0x31
@@ -70,5 +71,6 @@ const (
 	BMtch byte = 0x49
 
 	Call byte = 0x50
-	Func byte = 0x51
+	Ret  byte = 0x51
+	Func byte = 0x52
 )

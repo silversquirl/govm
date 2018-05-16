@@ -6,4 +6,4 @@ func :
 	get @Println:string
 	call
 end func
-set @Main
+set @Main:

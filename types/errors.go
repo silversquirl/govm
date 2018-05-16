@@ -36,3 +36,11 @@ type StackUnderflow struct{}
 func (e StackUnderflow) Error() string {
 	return "Stack underflow"
 }
+
+type ReturnError struct{}
+
+func (r ReturnError) Error() string {
+	return "Return"
+}
+
+var Return = ReturnError{}

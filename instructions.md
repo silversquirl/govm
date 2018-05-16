@@ -29,10 +29,7 @@ whereas a negative offset of `n` will jump backward by `-n` bytes.
 T and T1 are stand-ins for any type. Multiple occurrences of T or T1 refer
 to the same concrete type.
 
-In govm bytecode, a type for T or T1 is placed before the value if it is
-an operand.
-
-- `push->T (T)`
+- `push->T (T)` In govm bytecode, a type for T is placed before the operand value
 - `pop:T`
 - `dup:T->T:T`
 - `swp:T:T1->T1:T`
@@ -40,8 +37,6 @@ an operand.
 - `get->T (symbol)`
 
 ## Arithmetic
-
-### Integer
 
 - `inc:int->int`
 - `dec:int->int`
@@ -53,6 +48,7 @@ an operand.
 - `sub:N1:N2->N3`
 - `mul:N1:N2->N3`
 - `div:N1:N2->N3`
+- `mod:int:int->int`
 
 ## Logic
 
@@ -62,8 +58,6 @@ an operand.
 occurrences of `T` refer to the same type. There are also variants for
 comparing `int` and `float` values (but beware of floating point
 inaccuracies when testing equality).
-
-In govm bytecode, a type for T is provided before the first operand.
 
 - `eq:T:T->bool`
 - `ne:T:T->bool`
@@ -105,6 +99,7 @@ And an operator for checking if a bitmask matches an int:
 ## Functions
 
 - `call:func:<args>-><rets>`
+- `ret`
 
 This instruction is used for creating functions. It takes a type signature
 as its first operand and the number of bytes until the end of the function

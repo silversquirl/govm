@@ -30,8 +30,8 @@ var (
 	TypeFunc   Type = Type{FuncT, TypeSignature{}, 0}
 )
 
-func TypeOf(v Value) (t Type) {
-	switch v := v.(type) {
+func TypeOf(val Value) (t Type) {
+	switch val := val.(type) {
 	case int:
 		return TypeInt
 	case float64:
@@ -42,11 +42,11 @@ func TypeOf(v Value) (t Type) {
 		return TypeString
 	case Function:
 		t.Kind = FuncT
-		t.Sig = v.Sig
+		t.Sig = val.Sig
 		return
 	case Builtin:
 		t.Kind = FuncT
-		t.Sig = v.Sig
+		t.Sig = val.Sig
 		return
 	default:
 		panic("Unknown type")

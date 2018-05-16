@@ -10,7 +10,7 @@ import (
 type VM struct {
 	stack types.Stack
 	scope *types.Scope
-	code  bytecode.Reader
+	code  *bytecode.Reader
 }
 
 func NewVM() (v VM) {
@@ -39,7 +39,7 @@ func (v *VM) exec() error {
 		case opcode.J:
 			off, err := v.code.Int()
 			if err != nil {
-				return nil
+				return err
 			}
 			if err := v.Jump(off); err != nil {
 				return err
@@ -48,7 +48,7 @@ func (v *VM) exec() error {
 		case opcode.JT:
 			off, err := v.code.Int()
 			if err != nil {
-				return nil
+				return err
 			}
 			if err := v.JumpTrue(off); err != nil {
 				return err
@@ -57,7 +57,7 @@ func (v *VM) exec() error {
 		case opcode.JF:
 			off, err := v.code.Int()
 			if err != nil {
-				return nil
+				return err
 			}
 			if err := v.JumpFalse(off); err != nil {
 				return err
@@ -66,7 +66,7 @@ func (v *VM) exec() error {
 		case opcode.JZ:
 			off, err := v.code.Int()
 			if err != nil {
-				return nil
+				return err
 			}
 			if err := v.JumpZero(off); err != nil {
 				return err
@@ -75,7 +75,7 @@ func (v *VM) exec() error {
 		case opcode.JNz:
 			off, err := v.code.Int()
 			if err != nil {
-				return nil
+				return err
 			}
 			if err := v.JumpNonzero(off); err != nil {
 				return err
@@ -84,7 +84,7 @@ func (v *VM) exec() error {
 		case opcode.Push:
 			val, err := v.code.TypedValue()
 			if err != nil {
-				return nil
+				return err
 			}
 			v.Push(val)
 
@@ -115,7 +115,9 @@ func (v *VM) exec() error {
 			if err != nil {
 				return err
 			}
-			v.Get(types.Symbol(s))
+			if err := v.Get(types.Symbol(s)); err != nil {
+				return err
+			}
 
 		case opcode.Inc:
 			if err := v.Inc(); err != nil {
@@ -139,6 +141,10 @@ func (v *VM) exec() error {
 			}
 		case opcode.Div:
 			if err := v.Div(); err != nil {
+				return err
+			}
+		case opcode.Mod:
+			if err := v.Mod(); err != nil {
 				return err
 			}
 
@@ -229,6 +235,10 @@ func (v *VM) exec() error {
 			if err := v.Call(); err != nil {
 				return err
 			}
+
+		case opcode.Ret:
+			// Doesn't make sense to have a separate function
+			return types.Return
 
 		case opcode.Func:
 			sig, err := v.code.TypeSignature()
@@ -528,6 +538,26 @@ func (v *VM) Div() error {
 	default:
 		return types.TypeError{types.TypeNum, types.TypeOf(b)}
 	}
+	return nil
+}
+
+func (v *VM) Mod() error {
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
+	if err := types.TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := types.TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) % b.(int))
 	return nil
 }
 
@@ -1049,7 +1079,9 @@ func (v *VM) Call() error {
 			v.code = code
 			v.scope = v.scope.Parent
 		}()
-		v.exec()
+		if err := v.exec(); err != types.Return && err != nil {
+			return err
+		}
 		if err := v.checkTypes(f.Sig.Ret); err != nil {
 			return err
 		}
