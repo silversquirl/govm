@@ -30,3 +30,9 @@ type NameError struct{ name Symbol }
 func (e NameError) Error() string {
 	return fmt.Sprintf("Name error: could not find variable named %s", e.name)
 }
+
+type StackUnderflow struct{}
+
+func (e StackUnderflow) Error() string {
+	return "Stack underflow"
+}

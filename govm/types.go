@@ -87,31 +87,48 @@ func (s *Stack) Push(v Value) {
 	*s = append(*s, v)
 }
 
-func (s *Stack) Pop() Value {
+func (s *Stack) Pop() (Value, error) {
+	if len(*s) < 1 {
+		return nil, StackUnderflow{}
+	}
 	l := len(*s) - 1
 	v := (*s)[l]
 	*s = (*s)[:l]
-	return v
+	return v, nil
 }
 
-func (s *Stack) PopN(n int) []Value {
+func (s *Stack) PopN(n int) ([]Value, error) {
+	if len(*s) < n {
+		return nil, StackUnderflow{}
+	}
 	vals := (*s)[len(*s)-n:]
 	*s = (*s)[:len(*s)-n]
-	return vals
+	return vals, nil
 }
 
-func (s *Stack) Peek(n int) Value {
+func (s *Stack) Peek(n int) (Value, error) {
+	if len(*s) < n + 1 {
+		return nil, StackUnderflow{}
+	}
 	l := len(*s) - 1
-	return (*s)[l-n]
+	return (*s)[l-n], nil
 }
 
-func (s *Stack) Dup() {
+func (s *Stack) Dup() error {
+	if len(*s) < 1 {
+		return StackUnderflow{}
+	}
 	*s = append(*s, (*s)[len(*s)-1])
+	return nil
 }
 
-func (s *Stack) Swap() {
+func (s *Stack) Swap() error {
+	if len(*s) < 2 {
+		return StackUnderflow{}
+	}
 	l := len(*s) - 1
 	(*s)[l-1], (*s)[l] = (*s)[l], (*s)[l-1]
+	return nil
 }
 
 type Scope struct {

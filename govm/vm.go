@@ -89,13 +89,19 @@ func (v *VM) exec() error {
 			v.Push(val)
 
 		case Pop:
-			v.Pop()
+			if _, err := v.Pop(); err != nil {
+				return err
+			}
 
 		case Dup:
-			v.Dup()
+			if err := v.Dup(); err != nil {
+				return err
+			}
 
 		case Swp:
-			v.Swap()
+			if err := v.Swap(); err != nil {
+				return err
+			}
 
 		case Set:
 			s, err := v.readS()
@@ -357,7 +363,11 @@ func (v *VM) Jump(off int) error {
 }
 
 func (v *VM) JumpTrue(off int) error {
-	switch val := v.Pop().(type) {
+	val, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	switch val := val.(type) {
 	case bool:
 		if val {
 			return v.Jump(off)
@@ -369,7 +379,11 @@ func (v *VM) JumpTrue(off int) error {
 }
 
 func (v *VM) JumpFalse(off int) error {
-	switch val := v.Pop().(type) {
+	val, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	switch val := val.(type) {
 	case bool:
 		if !val {
 			return v.Jump(off)
@@ -381,7 +395,11 @@ func (v *VM) JumpFalse(off int) error {
 }
 
 func (v *VM) JumpZero(off int) error {
-	switch val := v.Pop().(type) {
+	val, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	switch val := val.(type) {
 	case int:
 		if val == 0 {
 			return v.Jump(off)
@@ -397,7 +415,11 @@ func (v *VM) JumpZero(off int) error {
 }
 
 func (v *VM) JumpNonzero(off int) error {
-	switch val := v.Pop().(type) {
+	val, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	switch val := val.(type) {
 	case int:
 		if val != 0 {
 			return v.Jump(off)
@@ -416,23 +438,25 @@ func (v *VM) Push(val Value) {
 	v.stack.Push(val)
 }
 
-func (v *VM) Pop() Value {
-	// TODO: errors
+func (v *VM) Pop() (Value, error) {
 	return v.stack.Pop()
 }
 
-func (v *VM) Dup() {
-	// TODO: errors
-	v.stack.Dup()
+func (v *VM) Dup() error {
+	return v.stack.Dup()
 }
 
-func (v *VM) Swap() {
-	// TODO: errors
-	v.stack.Swap()
+func (v *VM) Swap() error {
+	return v.stack.Swap()
 }
 
-func (v *VM) Set(s Symbol) {
-	v.scope.Set(s, v.Pop())
+func (v *VM) Set(s Symbol) error {
+	if val, err := v.Pop(); err == nil {
+		v.scope.Set(s, val)
+	} else {
+		return err
+	}
+	return nil
 }
 
 func (v *VM) Get(s Symbol) error {
@@ -445,7 +469,11 @@ func (v *VM) Get(s Symbol) error {
 }
 
 func (v *VM) Inc() error {
-	switch val := v.Pop().(type) {
+	val, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	switch val := val.(type) {
 	case int:
 		v.Push(val + 1)
 		return nil
@@ -455,7 +483,11 @@ func (v *VM) Inc() error {
 }
 
 func (v *VM) Dec() error {
-	switch val := v.Pop().(type) {
+	val, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	switch val := val.(type) {
 	case int:
 		v.Push(val - 1)
 		return nil
@@ -465,7 +497,15 @@ func (v *VM) Dec() error {
 }
 
 func (v *VM) Add() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -494,7 +534,15 @@ func (v *VM) Add() error {
 }
 
 func (v *VM) Sub() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -523,7 +571,15 @@ func (v *VM) Sub() error {
 }
 
 func (v *VM) Mul() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -552,7 +608,15 @@ func (v *VM) Mul() error {
 }
 
 func (v *VM) Div() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -581,7 +645,15 @@ func (v *VM) Div() error {
 }
 
 func (v *VM) EQ() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -610,7 +682,15 @@ func (v *VM) EQ() error {
 }
 
 func (v *VM) NE() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -639,7 +719,15 @@ func (v *VM) NE() error {
 }
 
 func (v *VM) LT() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -668,7 +756,15 @@ func (v *VM) LT() error {
 }
 
 func (v *VM) GT() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -697,7 +793,15 @@ func (v *VM) GT() error {
 }
 
 func (v *VM) LE() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -726,7 +830,15 @@ func (v *VM) LE() error {
 }
 
 func (v *VM) GE() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
@@ -755,7 +867,15 @@ func (v *VM) GE() error {
 }
 
 func (v *VM) And() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeBool.TypeCheck(a); err != nil {
 		return err
 	}
@@ -767,7 +887,15 @@ func (v *VM) And() error {
 }
 
 func (v *VM) Or() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeBool.TypeCheck(a); err != nil {
 		return err
 	}
@@ -779,7 +907,15 @@ func (v *VM) Or() error {
 }
 
 func (v *VM) Xor() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeBool.TypeCheck(a); err != nil {
 		return err
 	}
@@ -791,7 +927,10 @@ func (v *VM) Xor() error {
 }
 
 func (v *VM) Not() error {
-	a := v.Pop()
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
 	if err := TypeBool.TypeCheck(a); err != nil {
 		return err
 	}
@@ -800,7 +939,15 @@ func (v *VM) Not() error {
 }
 
 func (v *VM) BAnd() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -812,7 +959,15 @@ func (v *VM) BAnd() error {
 }
 
 func (v *VM) BOr() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -824,7 +979,15 @@ func (v *VM) BOr() error {
 }
 
 func (v *VM) BXor() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -836,7 +999,10 @@ func (v *VM) BXor() error {
 }
 
 func (v *VM) BNot() error {
-	a := v.Pop()
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -845,7 +1011,15 @@ func (v *VM) BNot() error {
 }
 
 func (v *VM) BLS() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -857,7 +1031,15 @@ func (v *VM) BLS() error {
 }
 
 func (v *VM) BRS() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -869,7 +1051,15 @@ func (v *VM) BRS() error {
 }
 
 func (v *VM) BSet() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -881,7 +1071,15 @@ func (v *VM) BSet() error {
 }
 
 func (v *VM) BClr() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -893,7 +1091,15 @@ func (v *VM) BClr() error {
 }
 
 func (v *VM) BTgl() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -905,7 +1111,15 @@ func (v *VM) BTgl() error {
 }
 
 func (v *VM) BMtch() error {
-	b, a := v.Pop(), v.Pop()
+	b, err := v.Pop()
+	if err != nil {
+		return err
+	}
+	a, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
 	if err := TypeInt.TypeCheck(a); err != nil {
 		return err
 	}
@@ -918,7 +1132,11 @@ func (v *VM) BMtch() error {
 
 func (v *VM) checkTypes(types []Type) error {
 	for i, t := range types {
-		if err := t.TypeCheck(v.stack.Peek(i)); err != nil {
+		val, err := v.stack.Peek(i)
+		if err != nil {
+			return err
+		}
+		if err := t.TypeCheck(val); err != nil {
 			return err
 		}
 	}
@@ -926,7 +1144,12 @@ func (v *VM) checkTypes(types []Type) error {
 }
 
 func (v *VM) Call() error {
-	switch f := v.Pop().(type) {
+	f, err := v.Pop()
+	if err != nil {
+		return err
+	}
+
+	switch f := f.(type) {
 	case Function:
 		if err := v.checkTypes(f.Sig.Args); err != nil {
 			return err
@@ -948,7 +1171,11 @@ func (v *VM) Call() error {
 		if err := v.checkTypes(f.Sig.Args); err != nil {
 			return err
 		}
-		rets := f.F(v.stack.PopN(len(f.Sig.Args))...)
+		args, err := v.stack.PopN(len(f.Sig.Args))
+		if err != nil {
+			return err
+		}
+		rets := f.F(args...)
 		v.stack = append(v.stack, rets...)
 		if err := v.checkTypes(f.Sig.Ret); err != nil {
 			return err
