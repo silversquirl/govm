@@ -9,7 +9,7 @@ import (
 type VM struct {
 	stack Stack
 	scope *Scope
-	code *bytes.Reader // The bit of code being currently executed
+	code  *bytes.Reader // The bit of code being currently executed
 }
 
 func NewVM() (v VM) {
@@ -41,35 +41,45 @@ func (v *VM) exec() error {
 			if err != nil {
 				return nil
 			}
-			v.Jump(off)
+			if err := v.Jump(off); err != nil {
+				return err
+			}
 
 		case JT:
 			off, err := v.readI()
 			if err != nil {
 				return nil
 			}
-			v.JumpTrue(off)
+			if err := v.JumpTrue(off); err != nil {
+				return err
+			}
 
 		case JF:
 			off, err := v.readI()
 			if err != nil {
 				return nil
 			}
-			v.JumpFalse(off)
+			if err := v.JumpFalse(off); err != nil {
+				return err
+			}
 
 		case JZ:
 			off, err := v.readI()
 			if err != nil {
 				return nil
 			}
-			v.JumpZero(off)
+			if err := v.JumpZero(off); err != nil {
+				return err
+			}
 
 		case JNz:
 			off, err := v.readI()
 			if err != nil {
 				return nil
 			}
-			v.JumpNonzero(off)
+			if err := v.JumpNonzero(off); err != nil {
+				return err
+			}
 
 		case Push:
 			val, err := v.readTypedValue()
@@ -102,63 +112,117 @@ func (v *VM) exec() error {
 			v.Get(Symbol(s))
 
 		case Inc:
-			v.Inc()
+			if err := v.Inc(); err != nil {
+				return err
+			}
 		case Dec:
-			v.Dec()
+			if err := v.Dec(); err != nil {
+				return err
+			}
 		case Add:
-			v.Add()
+			if err := v.Add(); err != nil {
+				return err
+			}
 		case Sub:
-			v.Sub()
+			if err := v.Sub(); err != nil {
+				return err
+			}
 		case Mul:
-			v.Mul()
+			if err := v.Mul(); err != nil {
+				return err
+			}
 		case Div:
-			v.Div()
+			if err := v.Div(); err != nil {
+				return err
+			}
 
 		case EQ:
-			v.EQ()
+			if err := v.EQ(); err != nil {
+				return err
+			}
 		case NE:
-			v.NE()
+			if err := v.NE(); err != nil {
+				return err
+			}
 		case LT:
-			v.LT()
+			if err := v.LT(); err != nil {
+				return err
+			}
 		case GT:
-			v.GT()
+			if err := v.GT(); err != nil {
+				return err
+			}
 		case LE:
-			v.LE()
+			if err := v.LE(); err != nil {
+				return err
+			}
 		case GE:
-			v.GE()
+			if err := v.GE(); err != nil {
+				return err
+			}
 
 		case And:
-			v.And()
+			if err := v.And(); err != nil {
+				return err
+			}
 		case Or:
-			v.Or()
+			if err := v.Or(); err != nil {
+				return err
+			}
 		case Xor:
-			v.Xor()
+			if err := v.Xor(); err != nil {
+				return err
+			}
 		case Not:
-			v.Not()
+			if err := v.Not(); err != nil {
+				return err
+			}
 
 		case BAnd:
-			v.BAnd()
+			if err := v.BAnd(); err != nil {
+				return err
+			}
 		case BOr:
-			v.BOr()
+			if err := v.BOr(); err != nil {
+				return err
+			}
 		case BXor:
-			v.BXor()
+			if err := v.BXor(); err != nil {
+				return err
+			}
 		case BNot:
-			v.BNot()
+			if err := v.BNot(); err != nil {
+				return err
+			}
 		case BLS:
-			v.BLS()
+			if err := v.BLS(); err != nil {
+				return err
+			}
 		case BRS:
-			v.BRS()
+			if err := v.BRS(); err != nil {
+				return err
+			}
 		case BSet:
-			v.BSet()
+			if err := v.BSet(); err != nil {
+				return err
+			}
 		case BClr:
-			v.BClr()
+			if err := v.BClr(); err != nil {
+				return err
+			}
 		case BTgl:
-			v.BTgl()
+			if err := v.BTgl(); err != nil {
+				return err
+			}
 		case BMtch:
-			v.BMtch()
+			if err := v.BMtch(); err != nil {
+				return err
+			}
 
 		case Call:
-			v.Call()
+			if err := v.Call(); err != nil {
+				return err
+			}
 
 		case Func:
 			sig, err := v.readTS()
@@ -287,54 +351,65 @@ func (v *VM) readTS() (TypeSignature, error) {
 	return ts, nil
 }
 
-func (v *VM) Jump(off int) {
-	v.code.Seek(int64(off), io.SeekCurrent)
+func (v *VM) Jump(off int) error {
+	_, err := v.code.Seek(int64(off), io.SeekCurrent)
+	return err
 }
 
-func (v *VM) JumpTrue(off int) {
-	// TODO: don't panic
-	if v.Pop().(bool) {
-		v.Jump(off)
-	}
-}
-
-func (v *VM) JumpFalse(off int) {
-	// TODO: don't panic
-	if !v.Pop().(bool) {
-		v.Jump(off)
-	}
-}
-
-func (v *VM) JumpZero(off int) {
-	switch n := v.Pop().(type) {
-	case int:
-		if n == 0 {
-			v.Jump(off)
-		}
-	case float64:
-		if n == 0.0 {
-			v.Jump(off)
+func (v *VM) JumpTrue(off int) error {
+	switch val := v.Pop().(type) {
+	case bool:
+		if val {
+			return v.Jump(off)
 		}
 	default:
-		// TODO: don't panic
-		panic("Type of top of stack not float or int for jz instruction")
+		return TypeError{TypeBool, TypeOf(val)}
 	}
+	return nil
 }
 
-func (v *VM) JumpNonzero(off int) {
-	switch n := v.Pop().(type) {
-	case int:
-		if n != 0 {
-			v.Jump(off)
-		}
-	case float64:
-		if n != 0.0 {
-			v.Jump(off)
+func (v *VM) JumpFalse(off int) error {
+	switch val := v.Pop().(type) {
+	case bool:
+		if !val {
+			return v.Jump(off)
 		}
 	default:
-		// TODO: don't panic
-		panic("Type of top of stack not float or int for jnz instruction")
+		return TypeError{TypeBool, TypeOf(val)}
 	}
+	return nil
+}
+
+func (v *VM) JumpZero(off int) error {
+	switch val := v.Pop().(type) {
+	case int:
+		if val == 0 {
+			return v.Jump(off)
+		}
+	case float64:
+		if val == 0.0 {
+			return v.Jump(off)
+		}
+	default:
+		return TypeError{TypeBool, TypeOf(val)}
+	}
+	return nil
+}
+
+func (v *VM) JumpNonzero(off int) error {
+	switch val := v.Pop().(type) {
+	case int:
+		if val != 0 {
+			return v.Jump(off)
+		}
+	case float64:
+		if val != 0.0 {
+			return v.Jump(off)
+		}
+	default:
+		return TypeError{TypeBool, TypeOf(val)}
+	}
+	return nil
 }
 
 func (v *VM) Push(val Value) {
@@ -342,14 +417,17 @@ func (v *VM) Push(val Value) {
 }
 
 func (v *VM) Pop() Value {
+	// TODO: errors
 	return v.stack.Pop()
 }
 
 func (v *VM) Dup() {
+	// TODO: errors
 	v.stack.Dup()
 }
 
 func (v *VM) Swap() {
+	// TODO: errors
 	v.stack.Swap()
 }
 
@@ -357,113 +435,152 @@ func (v *VM) Set(s Symbol) {
 	v.scope.Set(s, v.Pop())
 }
 
-func (v *VM) Get(s Symbol) {
-	v.Push(v.scope.Get(s))
+func (v *VM) Get(s Symbol) error {
+	val, err := v.scope.Get(s)
+	if err != nil {
+		return err
+	}
+	v.Push(val)
+	return nil
 }
 
-func (v *VM) Inc() {
-	// TODO: don't panic
-	v.Push(v.Pop().(int)+1)
+func (v *VM) Inc() error {
+	switch val := v.Pop().(type) {
+	case int:
+		v.Push(val + 1)
+		return nil
+	default:
+		return TypeError{TypeInt, TypeOf(val)}
+	}
 }
 
-func (v *VM) Dec() {
-	// TODO: don't panic
-	v.Push(v.Pop().(int)-1)
+func (v *VM) Dec() error {
+	switch val := v.Pop().(type) {
+	case int:
+		v.Push(val - 1)
+		return nil
+	default:
+		return TypeError{TypeInt, TypeOf(val)}
+	}
 }
 
-func (v *VM) Add() {
+func (v *VM) Add() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
 		case int:
-			v.Push(a+b)
+			v.Push(a + b)
 		case float64:
-			v.Push(float64(a)+b)
+			v.Push(float64(a) + b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
 		switch b := b.(type) {
 		case int:
-			v.Push(a+float64(b))
+			v.Push(a + float64(b))
 		case float64:
-			v.Push(a+b)
+			v.Push(a + b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in add instr")
+	return nil
 }
 
-func (v *VM) Sub() {
+func (v *VM) Sub() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
 		case int:
-			v.Push(a-b)
+			v.Push(a - b)
 		case float64:
-			v.Push(float64(a)-b)
+			v.Push(float64(a) - b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
 		switch b := b.(type) {
 		case int:
-			v.Push(a-float64(b))
+			v.Push(a - float64(b))
 		case float64:
-			v.Push(a-b)
+			v.Push(a - b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in sub instr")
+	return nil
 }
 
-func (v *VM) Mul() {
+func (v *VM) Mul() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
 		case int:
-			v.Push(a*b)
+			v.Push(a * b)
 		case float64:
-			v.Push(float64(a)*b)
+			v.Push(float64(a) * b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
 		switch b := b.(type) {
 		case int:
-			v.Push(a*float64(b))
+			v.Push(a * float64(b))
 		case float64:
-			v.Push(a*b)
+			v.Push(a * b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in mul instr")
+	return nil
 }
 
-func (v *VM) Div() {
+func (v *VM) Div() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
 		switch b := b.(type) {
 		case int:
-			v.Push(a/b)
+			v.Push(a / b)
 		case float64:
-			v.Push(float64(a)/b)
+			v.Push(float64(a) / b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
 		switch b := b.(type) {
 		case int:
-			v.Push(a/float64(b))
+			v.Push(a / float64(b))
 		case float64:
-			v.Push(a/b)
+			v.Push(a / b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in div instr")
+	return nil
 }
 
-func (v *VM) EQ() {
+func (v *VM) EQ() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
@@ -472,6 +589,8 @@ func (v *VM) EQ() {
 			v.Push(a == b)
 		case float64:
 			v.Push(float64(a) == b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
@@ -480,13 +599,17 @@ func (v *VM) EQ() {
 			v.Push(a == float64(b))
 		case float64:
 			v.Push(a == b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in eq instr")
+	return nil
 }
 
-func (v *VM) NE() {
+func (v *VM) NE() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
@@ -495,6 +618,8 @@ func (v *VM) NE() {
 			v.Push(a != b)
 		case float64:
 			v.Push(float64(a) != b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
@@ -503,13 +628,17 @@ func (v *VM) NE() {
 			v.Push(a != float64(b))
 		case float64:
 			v.Push(a != b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in ne instr")
+	return nil
 }
 
-func (v *VM) LT() {
+func (v *VM) LT() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
@@ -518,6 +647,8 @@ func (v *VM) LT() {
 			v.Push(a < b)
 		case float64:
 			v.Push(float64(a) < b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
@@ -526,13 +657,17 @@ func (v *VM) LT() {
 			v.Push(a < float64(b))
 		case float64:
 			v.Push(a < b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in lt instr")
+	return nil
 }
 
-func (v *VM) GT() {
+func (v *VM) GT() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
@@ -541,6 +676,8 @@ func (v *VM) GT() {
 			v.Push(a > b)
 		case float64:
 			v.Push(float64(a) > b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
@@ -549,13 +686,17 @@ func (v *VM) GT() {
 			v.Push(a > float64(b))
 		case float64:
 			v.Push(a > b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in gt instr")
+	return nil
 }
 
-func (v *VM) LE() {
+func (v *VM) LE() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
@@ -564,6 +705,8 @@ func (v *VM) LE() {
 			v.Push(a <= b)
 		case float64:
 			v.Push(float64(a) <= b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
@@ -572,13 +715,17 @@ func (v *VM) LE() {
 			v.Push(a <= float64(b))
 		case float64:
 			v.Push(a <= b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in le instr")
+	return nil
 }
 
-func (v *VM) GE() {
+func (v *VM) GE() error {
 	b, a := v.Pop(), v.Pop()
 	switch a := a.(type) {
 	case int:
@@ -587,6 +734,8 @@ func (v *VM) GE() {
 			v.Push(a >= b)
 		case float64:
 			v.Push(float64(a) >= b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
 
 	case float64:
@@ -595,109 +744,193 @@ func (v *VM) GE() {
 			v.Push(a >= float64(b))
 		case float64:
 			v.Push(a >= b)
+		default:
+			return TypeError{TypeNum, TypeOf(b)}
 		}
+
+	default:
+		return TypeError{TypeNum, TypeOf(b)}
 	}
-	// TODO: don't panic
-	panic("Bad type for a or b in ge instr")
+	return nil
 }
 
-func (v *VM) And() {
+func (v *VM) And() error {
 	b, a := v.Pop(), v.Pop()
-	// TODO: don't panic
+	if err := TypeBool.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeBool.TypeCheck(b); err != nil {
+		return err
+	}
 	v.Push(a.(bool) && b.(bool))
+	return nil
 }
 
-func (v *VM) Or() {
+func (v *VM) Or() error {
 	b, a := v.Pop(), v.Pop()
-	// TODO: don't panic
+	if err := TypeBool.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeBool.TypeCheck(b); err != nil {
+		return err
+	}
 	v.Push(a.(bool) || b.(bool))
+	return nil
 }
 
-func (v *VM) Xor() {
+func (v *VM) Xor() error {
 	b, a := v.Pop(), v.Pop()
-	// TODO: don't panic
+	if err := TypeBool.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeBool.TypeCheck(b); err != nil {
+		return err
+	}
 	v.Push(a.(bool) != b.(bool))
+	return nil
 }
 
-func (v *VM) Not() {
-	// TODO: don't panic
-	v.Push(!v.Pop().(bool))
+func (v *VM) Not() error {
+	a := v.Pop()
+	if err := TypeBool.TypeCheck(a); err != nil {
+		return err
+	}
+	v.Push(!a.(bool))
+	return nil
 }
 
-func (v *VM) BAnd() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a&b)
+func (v *VM) BAnd() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) & b.(int))
+	return nil
 }
 
-func (v *VM) BOr() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a|b)
+func (v *VM) BOr() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) | b.(int))
+	return nil
 }
 
-func (v *VM) BXor() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a^b)
+func (v *VM) BXor() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) ^ b.(int))
+	return nil
 }
 
-func (v *VM) BNot() {
-	// TODO: don't panic
-	a := v.Pop().(int)
-	v.Push(^a)
+func (v *VM) BNot() error {
+	a := v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	v.Push(^a.(int))
+	return nil
 }
 
-func (v *VM) BLS() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a<<uint(b))
+func (v *VM) BLS() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) << uint(b.(int)))
+	return nil
 }
 
-func (v *VM) BRS() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a>>uint(b))
+func (v *VM) BRS() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) >> uint(b.(int)))
+	return nil
 }
 
-func (v *VM) BSet() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a|(1<<uint(b)))
+func (v *VM) BSet() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) | (1 << uint(b.(int))))
+	return nil
 }
 
-func (v *VM) BClr() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a&^(1<<uint(b)))
+func (v *VM) BClr() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) &^ (1 << uint(b.(int))))
+	return nil
 }
 
-func (v *VM) BTgl() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a^(1<<uint(b)))
+func (v *VM) BTgl() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int) ^ (1 << uint(b.(int))))
+	return nil
 }
 
-func (v *VM) BMtch() {
-	// TODO: don't panic
-	b, a := v.Pop().(int), v.Pop().(int)
-	v.Push(a&b != 0)
+func (v *VM) BMtch() error {
+	b, a := v.Pop(), v.Pop()
+	if err := TypeInt.TypeCheck(a); err != nil {
+		return err
+	}
+	if err := TypeInt.TypeCheck(b); err != nil {
+		return err
+	}
+	v.Push(a.(int)&b.(int) != 0)
+	return nil
 }
 
-func (v *VM) checkTypes(types []Type) {
+func (v *VM) checkTypes(types []Type) error {
 	for i, t := range types {
-		if !t.TypeCheck(v.stack.Peek(i)) {
-			// TODO: handle panics
-			panic(TypeError{t, TypeOf(v)})
+		if err := t.TypeCheck(v.stack.Peek(i)); err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
-func (v *VM) Call() {
-	// TODO: don't panic
+func (v *VM) Call() error {
 	switch f := v.Pop().(type) {
 	case Function:
-		v.checkTypes(f.Sig.Args)
+		if err := v.checkTypes(f.Sig.Args); err != nil {
+			return err
+		}
 
 		v.scope = v.scope.Child()
 		code := v.code
@@ -707,20 +940,30 @@ func (v *VM) Call() {
 			v.scope = v.scope.parent
 		}()
 		v.exec()
-		v.checkTypes(f.Sig.Ret)
+		if err := v.checkTypes(f.Sig.Ret); err != nil {
+			return err
+		}
 
 	case Builtin:
-		v.checkTypes(f.Sig.Args)
+		if err := v.checkTypes(f.Sig.Args); err != nil {
+			return err
+		}
 		rets := f.F(v.stack.PopN(len(f.Sig.Args))...)
 		v.stack = append(v.stack, rets...)
-		v.checkTypes(f.Sig.Ret)
+		if err := v.checkTypes(f.Sig.Ret); err != nil {
+			return err
+		}
+
+	default:
+		return TypeError{TypeFunc, TypeOf(f)}
 	}
+	return nil
 }
 
 func (v *VM) Func(sig TypeSignature, code []byte) {
 	v.Push(Function{sig, code})
 }
 
-func (v *VM) Builtin(sig TypeSignature, f func (...Value) []Value) {
+func (v *VM) Builtin(sig TypeSignature, f func(...Value) []Value) {
 	v.Push(Builtin{sig, f})
 }

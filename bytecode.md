@@ -37,9 +37,9 @@ Constructed at runtime, therefore not stored in bytecode.
 
 These are only used for struct or function definitions.
 
-- Int: `0x00`
-- Float: `0x01`
-- Bool: `0x02`
-- String: `0x03`
-- Func: `0x04 sig` where `sig` is a type signature as specified in `instructions.md`
-- Struct: `0x05 i` where `i` is an `int` index in the struct table
+- Int: `0x01`
+- Float: `0x02`
+- Bool: `0x04`
+- String: `0x08`
+- Func: `0x10 sig` where `sig` is a type signature as specified in `instructions.md`
+- Struct: `0x20 i` where `i` is an `int` index in the struct table

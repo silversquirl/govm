@@ -31,7 +31,7 @@ func main() {
 	v := govm.NewVM()
 	v.Load(code)
 
-	v.Builtin(govm.TypeSignature{[]govm.Type{govm.TypeString}, nil}, func (a ...govm.Value) []govm.Value {
+	v.Builtin(govm.TypeSignature{[]govm.Type{govm.TypeString}, nil}, func(a ...govm.Value) []govm.Value {
 		s := a[0].(string)
 		fmt.Println(s)
 		return nil

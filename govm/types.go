@@ -7,7 +7,7 @@ type Symbol string
 type Kind byte
 
 const (
-	Int Kind = iota
+	Int Kind = 1 << iota
 	Float
 	Bool
 	String
@@ -17,15 +17,17 @@ const (
 
 type Type struct {
 	Kind Kind
-	Sig TypeSignature // Only used when Kind == Func
-	I int // Index in struct table. Only used when Kind == Struct
+	Sig  TypeSignature // Only used when Kind is Func
+	I    int           // Index in struct table. Only used when Kind is Struct
 }
 
 var (
-	TypeInt Type = Type{Int, TypeSignature{}, 0}
-	TypeFloat Type = Type{Float, TypeSignature{}, 0}
-	TypeBool Type = Type{Bool, TypeSignature{}, 0}
+	TypeInt    Type = Type{Int, TypeSignature{}, 0}
+	TypeFloat  Type = Type{Float, TypeSignature{}, 0}
+	TypeNum    Type = Type{Int | Float, TypeSignature{}, 0}
+	TypeBool   Type = Type{Bool, TypeSignature{}, 0}
 	TypeString Type = Type{String, TypeSignature{}, 0}
+	TypeFunc   Type = Type{FuncT, TypeSignature{}, 0}
 )
 
 func TypeOf(v Value) (t Type) {
@@ -51,15 +53,18 @@ func TypeOf(v Value) (t Type) {
 	}
 }
 
-func (t Type) TypeCheck(v Value) bool {
-	switch TypeOf(v).Kind {
-	case Struct:
+func (t Type) TypeCheck(val Value) error {
+	t2 := TypeOf(val)
+	if t2.Kind == Struct {
 		panic("Structs not yet implemented")
-	case t.Kind:
-		return true
-	default:
-		return false
+	} else if t.Kind&t2.Kind != 0 {
+		if t2.Kind == FuncT {
+			// TODO: implement special case for functions
+			println("TypeCheck special case for functions not yet implemented")
+		}
+		return nil
 	}
+	return TypeError{t, TypeOf(val)}
 }
 
 type TypeSignature struct {
@@ -67,13 +72,13 @@ type TypeSignature struct {
 }
 
 type Function struct {
-	Sig TypeSignature
+	Sig  TypeSignature
 	Code []byte
 }
 
 type Builtin struct {
 	Sig TypeSignature
-	F func(...Value) []Value
+	F   func(...Value) []Value
 }
 
 type Stack []Value
@@ -111,7 +116,7 @@ func (s *Stack) Swap() {
 
 type Scope struct {
 	parent *Scope
-	m map[Symbol]Value
+	m      map[Symbol]Value
 }
 
 func (s *Scope) Child() *Scope {
@@ -125,15 +130,14 @@ func (s *Scope) Set(k Symbol, v Value) {
 	s.m[k] = v
 }
 
-func (s *Scope) Get(k Symbol) Value {
+func (s *Scope) Get(k Symbol) (Value, error) {
 	if s.m != nil {
 		if v, ok := s.m[k]; ok {
-			return v
+			return v, nil
 		}
 	}
 	if s.parent == nil {
-		// TODO: handle panics
-		panic(NameError{k})
+		return nil, NameError{k}
 	}
 	return s.parent.Get(k)
 }
