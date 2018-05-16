@@ -55,20 +55,47 @@ func TypeOf(v Value) (t Type) {
 
 func (t Type) TypeCheck(val Value) error {
 	t2 := TypeOf(val)
+	if t.Equal(t2) {
+		return nil
+	} else {
+		return TypeError{t, TypeOf(val)}
+	}
+}
+
+func (t Type) Equal(t2 Type) bool {
 	if t2.Kind == Struct {
 		panic("Structs not yet implemented")
 	} else if t.Kind&t2.Kind != 0 {
 		if t2.Kind == FuncT {
-			// TODO: implement special case for functions
-			println("TypeCheck special case for functions not yet implemented")
+			if t.Sig.Equal(t2.Sig) {
+				return true
+			}
+		} else {
+			return true
 		}
-		return nil
 	}
-	return TypeError{t, TypeOf(val)}
+	return false
 }
 
 type TypeSignature struct {
 	Args, Ret []Type
+}
+
+func (ts TypeSignature) Equal(ts2 TypeSignature) bool {
+	if len(ts.Args) != len(ts2.Args) || len(ts.Ret) != len(ts2.Ret) {
+		return false
+	}
+	for i := range ts.Args {
+		if ts.Args[i].Equal(ts2.Args[i]) {
+			return false
+		}
+	}
+	for i := range ts.Ret {
+		if ts.Ret[i].Equal(ts2.Ret[i]) {
+			return false
+		}
+	}
+	return true
 }
 
 type Function struct {
