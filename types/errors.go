@@ -1,11 +1,11 @@
-package govm
+package types
 
 import "fmt"
 
-type TypeError struct{ expected, actual Type }
+type TypeError struct{ Expected, Actual Type }
 
 func (e TypeError) Error() string {
-	return fmt.Sprintf("Type error: expected %s, got %s", e.expected, e.actual)
+	return fmt.Sprintf("Type error: expected %s, got %s", e.Expected, e.Actual)
 }
 
 func (t Type) String() string {
@@ -25,10 +25,10 @@ func (t Type) String() string {
 	}
 }
 
-type NameError struct{ name Symbol }
+type NameError struct{ Name Symbol }
 
 func (e NameError) Error() string {
-	return fmt.Sprintf("Name error: could not find variable named %s", e.name)
+	return fmt.Sprintf("Name error: could not find variable named %s", e.Name)
 }
 
 type StackUnderflow struct{}

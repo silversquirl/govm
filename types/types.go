@@ -1,4 +1,4 @@
-package govm
+package types
 
 type Value interface{}
 
@@ -159,7 +159,7 @@ func (s *Stack) Swap() error {
 }
 
 type Scope struct {
-	parent *Scope
+	Parent *Scope
 	m      map[Symbol]Value
 }
 
@@ -180,8 +180,8 @@ func (s *Scope) Get(k Symbol) (Value, error) {
 			return v, nil
 		}
 	}
-	if s.parent == nil {
+	if s.Parent == nil {
 		return nil, NameError{k}
 	}
-	return s.parent.Get(k)
+	return s.Parent.Get(k)
 }
