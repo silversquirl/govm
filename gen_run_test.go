@@ -78,7 +78,7 @@ func TestGenRun(t *testing.T) {
 	}
 	t.Log(code)
 
-	v := NewVM()
+	v := New()
 	v.Load(code)
 
 	v.Builtin(codegen.Sig(":string"), func(a ...types.Value) []types.Value {

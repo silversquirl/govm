@@ -13,17 +13,19 @@ type VM struct {
 	code  *bytecode.Reader
 }
 
-func NewVM() (v VM) {
+func New() (v VM) {
 	v.scope = &types.Scope{}
 	return
 }
 
+func (v *VM) LoadFrom(r io.ReadSeeker) error {
+	v.code = &bytecode.Reader{r}
+	return v.exec()
+}
+
 func (v *VM) Load(code []byte) error {
 	v.code = bytecode.NewSliceReader(code)
-	if err := v.exec(); err != nil {
-		return err
-	}
-	return nil
+	return v.exec()
 }
 
 func (v *VM) exec() error {

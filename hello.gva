@@ -1,0 +1,8 @@
+// "This is govm IR: an assembly-like syntax for representing govm bytecode in human-readable form"
+
+func :
+	push "Hello, world!"
+	get @Println:string
+	call
+endfunc
+set @Main:

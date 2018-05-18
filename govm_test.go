@@ -30,7 +30,7 @@ func TestGovm(t *testing.T) {
 	)
 	code = append(code, []byte("Main:")...)
 
-	v := NewVM()
+	v := New()
 	v.Load(code)
 
 	v.Builtin(types.TypeSignature{[]types.Type{types.TypeString}, nil}, func(a ...types.Value) []types.Value {

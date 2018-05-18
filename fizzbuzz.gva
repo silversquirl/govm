@@ -2,42 +2,42 @@ func :int->string
 		dup
 		push 15
 		mod
-	jnz .fizz
+	jnz fizz
 		push "FizzBuzz"
-		j .endIf
+		j endIf
 
-	.fizz
+	. fizz
 		dup
 		push 3
 		mod
-	jnz .buzz
+	jnz buzz
 		push "Fizz"
-		j .endIf
+		j endIf
 
-	.buzz
+	. buzz
 		dup
 		push 5
 		mod
-	jnz .else
+	jnz else
 		push "Buzz"
-		j .endIf
+		j endIf
 
-	.else
+	. else
 		dup
 		get @ToString:int->string
 		call
-		j .endIf
-	.endIf
-end func
+		j endIf
+	. endIf
+endfunc
 set @fizzbuzz:int->string
 
 func :
 	push 1
-	.startLoop
+	. startLoop
 		dup
 		push 100
 		lt
-	jf .endLoop
+	jf endLoop
 		dup
 		get @fizzbuzz:int->string
 		call
@@ -45,7 +45,7 @@ func :
 		call
 
 		inc
-	j .startLoop
-	.endLoop
-end func
+	j startLoop
+	. endLoop
+endfunc
 set @Main:

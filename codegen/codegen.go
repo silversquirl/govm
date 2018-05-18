@@ -5,6 +5,7 @@ import (
 	"go.vktec.org.uk/govm/bytecode"
 	"go.vktec.org.uk/govm/opcode"
 	"go.vktec.org.uk/govm/types"
+	"io"
 )
 
 type Instruction struct {
@@ -21,29 +22,34 @@ func New() Generator {
 	return Generator{}
 }
 
-func (g Generator) Generate() ([]byte, error) {
-	buf := bytes.Buffer{}
-	bw := bytecode.NewWriter(&buf)
+func (g Generator) GenerateTo(w io.Writer) error {
+	bw := bytecode.NewWriter(w)
 	for _, i := range g.i {
 		if err := bw.WriteByte(i.Opcode); err != nil {
-			return nil, err
+			return err
 		}
 		switch i.Opcode {
 		case opcode.Push: // This instruction's operand is typed
 			for _, v := range i.Operands {
 				if err := bw.TypedValue(v); err != nil {
-					return nil, err
+					return err
 				}
 			}
 		default:
 			for _, v := range i.Operands {
 				if err := bw.Value(v); err != nil {
-					return nil, err
+					return err
 				}
 			}
 		}
 	}
-	return buf.Bytes(), nil
+	return nil
+}
+
+func (g Generator) Generate() ([]byte, error) {
+	buf := bytes.Buffer{}
+	err := g.GenerateTo(&buf)
+	return buf.Bytes(), err
 }
 
 func (g *Generator) Instr(code byte, operands... types.Value) {
