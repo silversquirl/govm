@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"go.vktec.org.uk/govm"
-	"go.vktec.org.uk/govm/codegen"
-	"go.vktec.org.uk/govm/types"
 	"io"
 	"os"
 )
@@ -26,19 +24,6 @@ func Main() int {
 	}
 
 	vm := govm.New()
-
-	vm.Builtin(codegen.Sig(":string"), func(a ...types.Value) []types.Value {
-		s := a[0].(string)
-		fmt.Println(s)
-		return nil
-	})
-	vm.Set(types.Symbol("Println:string"))
-
-	vm.Builtin(codegen.Sig(":int->string"), func(a ...types.Value) []types.Value {
-		i := a[0].(int)
-		return []types.Value{fmt.Sprintf("%d", i)}
-	})
-	vm.Set(types.Symbol("ToString:int->string"))
 
 	vm.LoadFrom(input)
 	if err := vm.Get("Main:"); err != nil {

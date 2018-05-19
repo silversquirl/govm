@@ -1,7 +1,6 @@
 package govm
 
 import (
-	"fmt"
 	"testing"
 	"go.vktec.org.uk/govm/opcode"
 	"go.vktec.org.uk/govm/types"
@@ -32,13 +31,6 @@ func TestGovm(t *testing.T) {
 
 	v := New()
 	v.Load(code)
-
-	v.Builtin(types.TypeSignature{[]types.Type{types.TypeString}, nil}, func(a ...types.Value) []types.Value {
-		s := a[0].(string)
-		fmt.Println(s)
-		return nil
-	})
-	v.Set(types.Symbol("Println:string"))
 
 	v.Get(types.Symbol("Main:"))
 	v.Call()

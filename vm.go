@@ -4,6 +4,7 @@ import (
 	"io"
 	"go.vktec.org.uk/govm/bytecode"
 	"go.vktec.org.uk/govm/opcode"
+	"go.vktec.org.uk/govm/stdlib"
 	"go.vktec.org.uk/govm/types"
 )
 
@@ -13,8 +14,17 @@ type VM struct {
 	code  *bytecode.Reader
 }
 
-func New() (v VM) {
+func NewWithoutStdlib() (v VM) {
 	v.scope = &types.Scope{}
+	return
+}
+
+func New() (v VM) {
+	v = NewWithoutStdlib()
+	for _, d := range stdlib.Functions {
+		v.Push(d.Builtin())
+		v.Set(d.Name())
+	}
 	return
 }
 

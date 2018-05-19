@@ -1,7 +1,6 @@
 package govm
 
 import (
-	"fmt"
 	"go.vktec.org.uk/govm/codegen"
 	"go.vktec.org.uk/govm/types"
 	"testing"
@@ -80,19 +79,6 @@ func TestGenRun(t *testing.T) {
 
 	v := New()
 	v.Load(code)
-
-	v.Builtin(codegen.Sig(":string"), func(a ...types.Value) []types.Value {
-		s := a[0].(string)
-		fmt.Println(s)
-		return nil
-	})
-	v.Set(types.Symbol("Println:string"))
-
-	v.Builtin(codegen.Sig(":int->string"), func(a ...types.Value) []types.Value {
-		i := a[0].(int)
-		return []types.Value{fmt.Sprintf("%d", i)}
-	})
-	v.Set(types.Symbol("ToString:int->string"))
 
 	if err := v.Get(types.Symbol("Main:")); err != nil {
 		t.Fatal("Get:", err)
