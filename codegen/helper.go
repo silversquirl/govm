@@ -1,7 +1,7 @@
 package codegen
 
 import (
-	"go.vktec.org.uk/govm/types"
+	"../types"
 	"strings"
 )
 

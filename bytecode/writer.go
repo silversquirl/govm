@@ -3,7 +3,7 @@ package bytecode
 import (
 	"encoding/binary"
 	"io"
-	"go.vktec.org.uk/govm/types"
+	"../types"
 )
 
 func SizeOfType(t types.Type) int {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
-	"go.vktec.org.uk/govm/types"
+	"../types"
 )
 
 type Reader struct { R io.ReadSeeker }

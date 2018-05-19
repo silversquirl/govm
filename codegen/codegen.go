@@ -2,9 +2,9 @@ package codegen
 
 import (
 	"bytes"
-	"go.vktec.org.uk/govm/bytecode"
-	"go.vktec.org.uk/govm/opcode"
-	"go.vktec.org.uk/govm/types"
+	"../bytecode"
+	"../opcode"
+	"../types"
 	"io"
 )
 

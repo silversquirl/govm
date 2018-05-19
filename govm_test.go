@@ -2,8 +2,8 @@ package govm
 
 import (
 	"testing"
-	"go.vktec.org.uk/govm/opcode"
-	"go.vktec.org.uk/govm/types"
+	"./opcode"
+	"./types"
 )
 
 func TestGovm(t *testing.T) {

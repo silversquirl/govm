@@ -1,8 +1,8 @@
 package govm
 
 import (
-	"go.vktec.org.uk/govm/codegen"
-	"go.vktec.org.uk/govm/types"
+	"./codegen"
+	"./types"
 	"testing"
 )
 

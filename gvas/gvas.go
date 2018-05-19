@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 	"strconv"
-	"go.vktec.org.uk/govm/codegen"
-	"go.vktec.org.uk/govm/types"
+	"../codegen"
+	"../types"
 )
 
 type Converter struct {

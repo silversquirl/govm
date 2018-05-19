@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go.vktec.org.uk/govm"
+	".."
 	"io"
 	"os"
 )

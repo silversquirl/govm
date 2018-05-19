@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"go.vktec.org.uk/govm/types"
-	"go.vktec.org.uk/govm/codegen"
+	"../types"
+	"../codegen"
 )
 
 type FuncDef struct {

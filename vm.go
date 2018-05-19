@@ -2,10 +2,10 @@ package govm
 
 import (
 	"io"
-	"go.vktec.org.uk/govm/bytecode"
-	"go.vktec.org.uk/govm/opcode"
-	"go.vktec.org.uk/govm/stdlib"
-	"go.vktec.org.uk/govm/types"
+	"./bytecode"
+	"./opcode"
+	"./stdlib"
+	"./types"
 )
 
 type VM struct {
